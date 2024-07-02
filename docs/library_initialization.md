@@ -80,10 +80,16 @@ await Am.initializeBase64Wasm(automergeWasmBase64);
 Val.town runs on a locked down Deno environment, so you'll need to do this:
 
 ```typescript
-import { automergeWasmBase64 } from "npm:@automerge/automerge";
-import { next as Am } from "npm:@automerge/automerge";
+import { BrowserWebSocketClientAdapter } from "npm:@automerge/automerge-repo-network-websocket";
+import { Repo } from "npm:@automerge/automerge-repo/slim";
+import { automergeWasmBase64 } from "npm:@automerge/automerge/automerge.wasm.base64.js";
+import { next as Am } from "npm:@automerge/automerge/slim";
 
 await Am.initializeBase64Wasm(automergeWasmBase64);
+
+const repo = new Repo({
+  network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+});
 ```
 
 ## The escape hatch

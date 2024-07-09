@@ -77,19 +77,30 @@ await Am.initializeBase64Wasm(automergeWasmBase64);
 
 ### Val.town
 
-Val.town runs on a locked down Deno environment, so you'll need to do this:
+Val.town is a cloud-based Deno execution platform. Here's the text of a simple "val" which returns the contents of the documentId passed via the path.
 
 ```typescript
 import { BrowserWebSocketClientAdapter } from "npm:@automerge/automerge-repo-network-websocket";
-import { Repo } from "npm:@automerge/automerge-repo/slim";
+import { isValidAutomergeUrl, Repo } from "npm:@automerge/automerge-repo/slim";
+
+/* set up Automerge's internal wasm guts manually */
 import { automergeWasmBase64 } from "npm:@automerge/automerge/automerge.wasm.base64.js";
-import { next as Am } from "npm:@automerge/automerge/slim";
+import * as automerge from "npm:@automerge/automerge/slim";
+await automerge.next.initializeBase64Wasm(automergeWasmBase64);
 
-await Am.initializeBase64Wasm(automergeWasmBase64);
+/* This example will return the contents of a documentID passed in as the path as JSON. */
+export default async function(req: Request): Promise<Response> {
+  const docId = new URL(req.url).pathname.substring(1);
 
-const repo = new Repo({
-  network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
-});
+  if (!isValidAutomergeUrl("automerge:" + docId)) {
+    return Response.error();
+  }
+
+  const repo = new Repo({ network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")] });
+  const handle = repo.find(docId);
+  const contents = await handle.doc();
+  return Response.json(contents);
+}
 ```
 
 ## The escape hatch
